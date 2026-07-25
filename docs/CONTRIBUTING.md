@@ -22,7 +22,6 @@ Thank you for your interest in contributing to DocMind! We welcome contributions
 ---
 
 ## 🤝 Code of Conduct
-
 We are committed to providing a welcoming and inclusive environment for all contributors. Please adhere to the following principles:
 
 - **Respectful Communication**: Treat all community members with respect
@@ -33,7 +32,6 @@ We are committed to providing a welcoming and inclusive environment for all cont
 **Violations**: Report violations to support@docmind.dev with details and evidence.
 
 ---
-
 ## 🚀 Getting Started
 
 ### Prerequisites
