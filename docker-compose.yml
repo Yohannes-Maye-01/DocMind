@@ -1,0 +1,198 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────
+#  DocMind – Production Docker Compose
+#  Memory budget: PostgreSQL 500MB | Go 200MB |
+#                 Rust 300MB | Python 1.5GB |
+#                 Ollama 3.5GB | System ~1GB
+# ─────────────────────────────────────────────────
+
+networks:
+  docmind_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  ollama_data:
+  document_storage:
+  typesense_data:
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: docmind_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/internal/database/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - docmind_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+
+  # ── Typesense (Search & Vector Engine) ─────────
+  typesense:
+    image: typesense/typesense:0.25.2
+    container_name: docmind_typesense
+    restart: unless-stopped
+    environment:
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
+      TYPESENSE_DATA_DIR: /data
+    volumes:
+      - typesense_data:/data
+    ports:
+      - "8108:8108"
+    networks:
+      - docmind_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8108/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ── Go Backend API ──────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: docmind_backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 8080
+      POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      RUST_SERVICE_URL: http://search-service:8081
+      PYTHON_SERVICE_URL: http://ai-service:8082
+      TYPESENSE_URL: http://typesense:8108
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - docmind_net
+    volumes:
+      - document_storage:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+
+  # ── Rust Search Service ─────────────────────────
+  search-service:
+    build:
+      context: ./search-service
+      dockerfile: Dockerfile
+    container_name: docmind_search
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 8081
+      POSTGRES_DSN: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      TYPESENSE_URL: http://typesense:8108
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY}
+      TYPESENSE_COLLECTION: docmind_chunks
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      typesense:
+        condition: service_healthy
+    networks:
+      - docmind_net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+
+  # ── Python AI Service ───────────────────────────
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: docmind_ai
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 8082
+      OLLAMA_URL: http://ollama:11434
+      EMBEDDING_MODEL: all-MiniLM-L6-v2
+    ports:
+      - "8082:8082"
+    depends_on:
+      - ollama
+    networks:
+      - docmind_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1500M
+
+  # ── Ollama (Local LLM) ──────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: docmind_ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - docmind_net
+    deploy:
+      resources:
+        limits:
+          memory: 3500M
+
+  # ── Frontend (TypeScript / React) ───────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: docmind_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - docmind_net

@@ -1,189 +1,150 @@
 # 🧠 DocMind
 
-> An AI-powered document search and knowledge assistant engineered with a high-performance polyglot architecture for lightning-fast retrieval, intelligent RAG processing, and seamless user interaction.
+> AI-powered document intelligence platform — upload files, search content, and ask questions using a fully offline RAG pipeline.
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)
-[![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange)](https://www.rust-lang.org/)
-[![Go](https://img.shields.io/badge/Go-1.21%2B-00ADD8)](https://golang.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-3178C6)](https://www.typescriptlang.org/)
-
----
-
-## ⚡ Features
-
-- **Lightning-Fast Retrieval** - Powered by Rust for ultra-optimized performance
-- **Intelligent RAG Processing** - Advanced Retrieval-Augmented Generation with Python & AI models
-- **Polyglot Architecture** - Seamlessly integrated Rust, Go, Python, and TypeScript microservices
-- **Semantic Search** - Find exactly what you need with AI-powered understanding
-- **Multi-Format Support** - Process documents in various formats (PDF, DOCX, TXT, JSON, etc.)
-- **Real-Time Indexing** - Instant document processing and indexing
-- **Scalable Design** - Built for enterprise-grade performance and reliability
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Go](https://img.shields.io/badge/Go-1.22-00ADD8)](https://golang.org/)
+[![Rust](https://img.shields.io/badge/Rust-1.79-orange)](https://www.rust-lang.org/)
+[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)](https://www.typescriptlang.org/)
 
 ---
 
-## 🏗️ Architecture
-
-DocMind leverages a modern polyglot microservices architecture:
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Frontend (TypeScript)                │
-└──────────────────────┬──────────────────────────────────┘
-                       │
-┌──────────────────────▼──────────────────────────────────┐
-│          API Gateway & Services (Go)                    │
-└──────────────────────┬──────────────────────────────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        │              │              │
-        ▼              ▼              ▼
-   ┌────────┐    ┌─────────┐    ┌─────────┐
-   │  Rust  │    │ Python  │    │   Go    │
-   │ Engine │    │  RAG    │    │ Workers │
-   └────────┘    └─────────┘    └─────────┘
+┌─────────────────────────────────────────┐
+│        Frontend  · TypeScript/React     │  :3000
+└───────────────────┬─────────────────────┘
+                    │ HTTP/REST
+┌───────────────────▼─────────────────────┐
+│       Backend API · Go (chi)            │  :8080
+│   Auth · Routing · Orchestration        │
+└──────────┬────────────────┬─────────────┘
+           │                │
+┌──────────▼──────┐  ┌──────▼──────────────┐
+│ Search Service  │  │    AI Service        │
+│  Rust + axum    │  │  Python + FastAPI    │  :8081 / :8082
+│  BTreeMap index │  │  Embeddings + RAG    │
+└──────────┬──────┘  └──────┬──────────────┘
+           │                │
+┌──────────▼────────────────▼─────────────┐
+│          PostgreSQL 16                   │  :5432
+└──────────────────────────────────────────┘
+           ↕ LLM inference
+┌─────────────────────────────────────────┐
+│          Ollama (local LLM)              │  :11434
+│     phi:2 Q4 or mistral:7b Q4           │
+└─────────────────────────────────────────┘
 ```
+
+**Memory budget (8GB machine):** PostgreSQL 500MB · Go 200MB · Rust 300MB · Python 1.5GB · Ollama 3.5GB · System ~1GB
 
 ---
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+
-- Python 3.9+
-- Rust 1.70+
-- Go 1.21+
-- Docker & Docker Compose (recommended)
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/Yohannes-Maye-01/DocMind.git
-cd DocMind
-
-# Using Docker (recommended)
-docker-compose up -d
-
-# Or install dependencies manually
-npm install
-pip install -r requirements.txt
-cargo build --release
-go mod download
-```
-
-### Usage
-
-```bash
-# Start the application
-npm start
-
-# Run in development mode
-npm run dev
-
-# Run tests
-npm test
-```
-
----
-
-## 📦 Project Structure
+## Project Structure
 
 ```
 DocMind/
-├── ai-service/         # Python RAG & AI processing
-├── backend/            # Go microservices & API
-├── frontend/           # TypeScript/React UI
-├── search-engine/      # Rust core search engine
-├── docker-compose.yml  # Container orchestration
-├── README.md          # This file
-└── package.json
+├── backend/                  # Go REST API & orchestrator
+│   ├── cmd/server/           # Entry point
+│   ├── internal/
+│   │   ├── api/              # Handlers, middleware, router
+│   │   ├── config/           # Env var loading
+│   │   └── database/         # pgxpool + SQL migrations
+│   └── Dockerfile
+├── search-service/           # Rust text processing & search
+│   ├── src/
+│   │   ├── api/              # axum routes
+│   │   ├── index/            # BTreeMap inverted index
+│   │   ├── parser/           # .txt / .md / .pdf → chunks
+│   │   └── search/           # TF-IDF ranking
+│   └── Dockerfile
+├── ai-service/               # Python embeddings & RAG
+│   ├── app/
+│   │   ├── api/routes/       # /embed  /rag/query
+│   │   ├── services/         # SentenceTransformer + Ollama
+│   │   └── core/             # Pydantic settings
+│   └── Dockerfile
+├── frontend/                 # TypeScript / React SPA
+│   ├── src/
+│   │   ├── api/              # Axios client
+│   │   ├── components/       # UI components (Phase 3)
+│   │   ├── pages/            # Route pages (Phase 3)
+│   │   └── types/            # Shared TS interfaces
+│   └── Dockerfile
+├── docs/                     # SDLC documentation
+├── scripts/                  # setup.sh  deploy.sh
+├── docker-compose.yml        # Full stack orchestration
+├── .env.example              # Environment template
+└── Makefile                  # Developer shortcuts
 ```
 
 ---
 
-## 🔗 API Endpoints
-
-- `POST /api/documents/upload` - Upload documents
-- `GET /api/search?q=query` - Semantic search
-- `POST /api/rag/query` - RAG-powered queries
-- `GET /api/documents/:id` - Retrieve document
-- `DELETE /api/documents/:id` - Delete document
-
----
-
-## 📚 Documentation
-
-For detailed documentation, check out:
-- [API Documentation](./docs/api.md)
-- [Architecture Guide](./docs/architecture.md)
-- [Setup Guide](./docs/setup.md)
-- [Contributing Guidelines](./CONTRIBUTING.md)
-
----
-
-## 🛠️ Tech Stack
-
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Search Engine | Rust | High-performance indexing & retrieval |
-| AI/ML Processing | Python | RAG, embeddings, NLP |
-| API Services | Go | High-concurrency request handling |
-| Frontend | TypeScript/React | User interface |
-| Database | PostgreSQL | Persistent storage |
-| Cache | Redis | Fast caching layer |
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) file for details on our code of conduct and the process for submitting pull requests.
+## Quick Start
 
 ```bash
-# Create a feature branch
-git checkout -b feature/amazing-feature
+# 1. Clone and enter
+git clone https://github.com/Yohannes-Maye-01/DocMind.git && cd DocMind
 
-# Commit changes
-git commit -m 'Add amazing feature'
+# 2. Create your .env
+cp .env.example .env        # then edit with real secrets
 
-# Push to branch
-git push origin feature/amazing-feature
+# 3. Build and start everything
+make up-build
 
-# Open a Pull Request
+# 4. Pull the local LLM (first time only, ~3GB)
+make pull-model
+
+# 5. Open the app
+open http://localhost:3000
 ```
 
 ---
 
-## 📄 License
+## Developer Commands
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+| Command | Description |
+|---------|-------------|
+| `make up` | Start all services (detached) |
+| `make up-build` | Rebuild images + start |
+| `make down` | Stop all services |
+| `make logs` | Tail all logs |
+| `make test` | Run all tests |
+| `make lint` | Run all linters |
+| `make db-shell` | Open PostgreSQL shell |
 
----
-
-## 💡 Roadmap
-
-- [ ] Multi-language support
-- [ ] Advanced NLP models
-- [ ] Collaborative features
-- [ ] Mobile app
-- [ ] Enterprise deployment options
-- [ ] Custom model training
-- [ ] API rate limiting & analytics
+See `Makefile` for the full list.
 
 ---
 
-## 📞 Support & Contact
+## Service READMEs
 
-- **Issues & Bugs**: [GitHub Issues](https://github.com/Yohannes-Maye-01/DocMind/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Yohannes-Maye-01/DocMind/discussions)
-- **Email**: support@docmind.dev
-
----
-
-## ⭐ Show Your Support
-
-If you find DocMind helpful, please give us a star! It helps us grow and improve.
+- [Backend (Go)](./backend/README.md)
+- [Search Service (Rust)](./search-service/README.md)
+- [AI Service (Python)](./ai-service/README.md)
+- [Frontend (TypeScript)](./frontend/README.md)
 
 ---
 
-**Made with ❤️ by the DocMind Team**
+## SDLC Status
+
+See [`docs/05-SDLC-roadmap.md`](./docs/05-SDLC-roadmap.md) for the full 18-week plan.
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Foundation & Setup | 🟡 In Progress |
+| 2 | Database & API Contract | ⬜ Pending |
+| 3 | Core Features (MVP) | ⬜ Pending |
+| 4 | AI Integration | ⬜ Pending |
+| 5 | Optimization | ⬜ Pending |
+| 6 | Testing & QA | ⬜ Pending |
+| 7 | Deployment & DevOps | ⬜ Pending |
+| 8 | Maintenance | ⬜ Ongoing |
+
+---
+
+## License
+
+MIT © DocMind Team

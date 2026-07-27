@@ -1,0 +1,31 @@
+[package]
+name = "search-service"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "search-service"
+path = "src/main.rs"
+
+[dependencies]
+tokio       = { version = "1",    features = ["full"] }
+axum        = "0.7"
+serde       = { version = "1",    features = ["derive"] }
+serde_json  = "1"
+anyhow      = "1"
+thiserror   = "1"
+tracing     = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+dotenvy     = "0.15"
+uuid        = { version = "1",    features = ["v4", "serde"] }
+chrono      = { version = "0.4",  features = ["serde"] }
+# HTTP client for Typesense API (rustls avoids OpenSSL dependency on Alpine)
+reqwest     = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+# Base64 decoding for PDF file content
+base64      = "0.22"
+# PDF / text parsing
+lopdf       = "0.33"
+pulldown-cmark = "0.11"
+
+[dev-dependencies]
+tokio-test  = "0.4"

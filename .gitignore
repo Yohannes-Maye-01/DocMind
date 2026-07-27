@@ -1,0 +1,44 @@
+# ─── Secrets ───────────────────────────────────
+.env
+*.pem
+*.key
+
+# ─── Go ────────────────────────────────────────
+backend/bin/
+backend/vendor/
+
+# ─── Rust ──────────────────────────────────────
+search-service/target/
+
+# ─── Python ────────────────────────────────────
+ai-service/__pycache__/
+ai-service/.venv/
+ai-service/*.egg-info/
+ai-service/.mypy_cache/
+ai-service/.ruff_cache/
+ai-service/.pytest_cache/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# ─── Node / Frontend ───────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ─── Docker ────────────────────────────────────
+docker-compose.override.yml
+
+# ─── OS ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── IDE ───────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ─── Test / Coverage ───────────────────────────
+coverage/
+*.out
+htmlcov/
