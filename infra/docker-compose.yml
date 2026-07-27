@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  app:
+    image: docmind:latest
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile
+    ports:
+      - "8000:8000"

@@ -91,13 +91,24 @@ npm test
 
 ```
 DocMind/
-├── ai-service/         # Python RAG & AI processing
-├── backend/            # Go microservices & API
-├── frontend/           # TypeScript/React UI
-├── search-engine/      # Rust core search engine
-├── docker-compose.yml  # Container orchestration
-├── README.md          # This file
-└── package.json
+├── .github/                # GitHub workflows and automation
+├── docs/                   # Project documentation
+│   ├── planning/           # Planning and requirements docs
+│   ├── architecture/       # Architecture notes
+│   └── api/                # API documentation
+├── frontend/               # React + TypeScript UI
+├── backend/                # Go REST API service
+├── search-service/         # Rust search and indexing service
+├── ai-service/             # Python AI/RAG processing service
+├── shared/                 # Shared schemas and libraries
+│   ├── schemas/            # Shared request/response models
+│   └── libs/               # Shared utility code
+├── infra/                  # Infrastructure and deployment files
+│   └── docker/             # Docker-related assets
+├── scripts/                # Utility scripts
+├── tests/                  # Test suites
+├── README.md               # Project overview
+└── infra/docker-compose.yml
 ```
 
 ---
