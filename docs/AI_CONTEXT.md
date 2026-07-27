@@ -27,6 +27,7 @@ Backend:
 
 Search Service:
 - Rust
+- Typesense (Search & Indexing Engine; runs via Docker, integrated via typesense-rust or API clients)
 
 AI Service:
 - Python
@@ -61,10 +62,13 @@ Frontend (TypeScript)
 Go Backend API
         |
    ----------------
-   |              |
-Rust Service   Python AI
-   |
-PostgreSQL
+   |              |              |
+Rust Service   Python AI     Typesense Engine
+ (Data Processing &         (Embeddings &   (Lightning-fast keyword & vector
+   `typesense-rust`)         RAG Pipelines)   indexing; accessed via HTTP API or client libraries)
+        |
+        ▼
+    PostgreSQL
 
 ## Rules for AI Assistants
 
