@@ -41,7 +41,7 @@
 **Memory budget (8GB machine):** PostgreSQL 500MB · Go 200MB · Rust 300MB · Python 1.5GB · Ollama 3.5GB · System ~1GB
 
 ---
-
+ 
 ## Project Structure
 
 ```
