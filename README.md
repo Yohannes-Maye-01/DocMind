@@ -56,7 +56,6 @@ DocMind leverages a modern polyglot microservices architecture:
 - Docker & Docker Compose (recommended)
 
 ### Installation
-
 ```bash
 # Clone the repository
 git clone https://github.com/Yohannes-Maye-01/DocMind.git
@@ -132,7 +131,6 @@ For detailed documentation, check out:
 - [Contributing Guidelines](./CONTRIBUTING.md)
 
 ---
-
 ## 🛠️ Tech Stack
 
 | Component | Technology | Purpose |
