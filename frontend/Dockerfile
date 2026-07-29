@@ -1,4 +1,3 @@
-# Multi-stage build for React frontend
 # Stage 1: Build
 FROM node:18-alpine as builder
 
@@ -21,20 +20,20 @@ FROM nginx:alpine
 
 WORKDIR /app
 
+# Copy built application from builder (React typically outputs to /app/build)
+COPY --from=builder /app/build /usr/share/nginx/html
+
 # Copy nginx configuration
 COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
-# Copy built application from builder
-COPY --from=builder /app/build /usr/share/nginx/html
+# Support non-root user by fixing Nginx system folder permissions
+RUN touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /var/log/nginx /usr/share/nginx/html
 
-# Create non-root user for security
-RUN addgroup -g 1001 appuser && \
-    adduser -D -u 1001 -G appuser appuser && \
-    chown -R appuser:appuser /usr/share/nginx/html
+# Switch to the pre-existing unprivileged nginx user
+USER nginx
 
-USER appuser
-
-# Expose port
+# Expose unprivileged port
 EXPOSE 3000
 
 # Health check
