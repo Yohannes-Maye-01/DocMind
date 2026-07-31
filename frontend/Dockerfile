@@ -25,20 +25,15 @@ COPY --from=builder /app/build /usr/share/nginx/html
 
 # Copy nginx configuration
 COPY frontend/nginx.conf /etc/nginx/nginx.conf
-
 # Support non-root user by fixing Nginx system folder permissions
 RUN touch /var/run/nginx.pid && \
     chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /var/log/nginx /usr/share/nginx/html
-
 # Switch to the pre-existing unprivileged nginx user
 USER nginx
-
 # Expose unprivileged port
 EXPOSE 3000
-
 # Health check
 HEALTHCHECK --interval=10s --timeout=5s --retries=5 \
     CMD wget --quiet --tries=1 --spider http://localhost:3000/ || exit 1
-
 # Run nginx
 CMD ["nginx", "-g", "daemon off;"]
