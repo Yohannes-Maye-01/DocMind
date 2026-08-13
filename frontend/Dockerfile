@@ -8,10 +8,8 @@ COPY frontend/package*.json ./
 
 # Install dependencies
 RUN npm ci
-
 # Copy source code
 COPY frontend/ .
-
 # Build application
 RUN npm run build
 
@@ -22,7 +20,6 @@ WORKDIR /app
 
 # Copy built application from builder (React typically outputs to /app/build)
 COPY --from=builder /app/build /usr/share/nginx/html
-
 # Copy nginx configuration
 COPY frontend/nginx.conf /etc/nginx/nginx.conf
 # Support non-root user by fixing Nginx system folder permissions
