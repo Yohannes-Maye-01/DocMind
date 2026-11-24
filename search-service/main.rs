@@ -15,7 +15,8 @@ mod search;
 use cli::{Cli, Commands};
 
 fn main() {
-    // Initialize tracing or logging subscriber here if needed, e.g.:
+    // Initialize the tracing/logging subscriber to capture structured logs.
+    // Uncomment once `tracing_subscriber` is wired up as a dependency:
     // tracing_subscriber::fmt::init();
 
     if let Err(err) = try_main() {
